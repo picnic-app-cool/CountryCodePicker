@@ -1,5 +1,7 @@
+import 'package:country_code_picker/countries_filter.dart';
 import 'package:country_code_picker/country_code.dart';
 import 'package:country_code_picker/country_localizations.dart';
+import 'package:country_code_picker/default_countries_filter.dart';
 import 'package:flutter/material.dart';
 
 /// selection dialog used for selection of the country code
@@ -27,6 +29,8 @@ class SelectionDialog extends StatefulWidget {
   /// elements passed as favorite
   final List<CountryCode> favoriteElements;
 
+  final CountriesFilter countriesFilter;
+
   SelectionDialog(
     this.elements,
     this.favoriteElements, {
@@ -45,6 +49,7 @@ class SelectionDialog extends StatefulWidget {
     this.barrierColor,
     this.hideSearch = false,
     this.closeIcon,
+    this.countriesFilter = const DefaultCountriesFilter(),
   })  : this.searchDecoration = searchDecoration.prefixIcon == null
             ? searchDecoration.copyWith(prefixIcon: Icon(Icons.search))
             : searchDecoration,
@@ -64,8 +69,7 @@ class _SelectionDialogState extends State<SelectionDialog> {
         child: Container(
           clipBehavior: Clip.hardEdge,
           width: widget.size?.width ?? MediaQuery.of(context).size.width,
-          height:
-              widget.size?.height ?? MediaQuery.of(context).size.height * 0.85,
+          height: widget.size?.height ?? MediaQuery.of(context).size.height * 0.85,
           decoration: widget.boxDecoration ??
               BoxDecoration(
                 color: widget.backgroundColor ?? Colors.white,
@@ -147,8 +151,7 @@ class _SelectionDialogState extends State<SelectionDialog> {
               child: Container(
                 margin: const EdgeInsets.only(right: 16.0),
                 decoration: widget.flagDecoration,
-                clipBehavior:
-                    widget.flagDecoration == null ? Clip.none : Clip.hardEdge,
+                clipBehavior: widget.flagDecoration == null ? Clip.none : Clip.hardEdge,
                 child: Image.asset(
                   e.flagUri!,
                   package: 'country_code_picker',
@@ -159,9 +162,7 @@ class _SelectionDialogState extends State<SelectionDialog> {
           Expanded(
             flex: 4,
             child: Text(
-              widget.showCountryOnly!
-                  ? e.toCountryStringOnly()
-                  : e.toLongString(),
+              widget.showCountryOnly! ? e.toCountryStringOnly() : e.toLongString(),
               overflow: TextOverflow.fade,
               style: widget.textStyle,
             ),
@@ -177,8 +178,7 @@ class _SelectionDialogState extends State<SelectionDialog> {
     }
 
     return Center(
-      child: Text(CountryLocalizations.of(context)?.translate('no_country') ??
-          'No country found'),
+      child: Text(CountryLocalizations.of(context)?.translate('no_country') ?? 'No country found'),
     );
   }
 
@@ -190,14 +190,9 @@ class _SelectionDialogState extends State<SelectionDialog> {
 
   void _filterElements(String s) {
     s = s.toUpperCase();
-    setState(() {
-      filteredElements = widget.elements
-          .where((e) =>
-              e.code!.contains(s) ||
-              e.dialCode!.contains(s) ||
-              e.name!.toUpperCase().contains(s))
-          .toList();
-    });
+    setState(
+      () => filteredElements = widget.countriesFilter.filter(widget.elements, s),
+    );
   }
 
   void _selectItem(CountryCode e) {
